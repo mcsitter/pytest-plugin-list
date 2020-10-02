@@ -1,3 +1,4 @@
+import pathlib
 import re
 
 import requests
@@ -34,7 +35,9 @@ def iter_plugins():
 
 def main():
     plugin_table = tabulate.tabulate(iter_plugins(), headers="keys", tablefmt="rst")
-    with open("plugin_list.rst", "w") as f:
+    plugin_list = pathlib.Path("doc", "en", "plugin_list.rst")
+    plugin_list.parent.mkdir(parents=True, exist_ok=True)
+    with plugin_list.open("w") as f:
         f.write(FILE_HEAD)
         f.write(plugin_table)
         f.write("\n")
