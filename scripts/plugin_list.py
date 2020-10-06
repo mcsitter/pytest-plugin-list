@@ -42,11 +42,18 @@ def iter_plugins():
                 break
         else:
             status = "NA"
+        requires = "NA"
+        if info["requires_dist"]:
+            for requirement in info["requires_dist"]:
+                if requirement == "pytest" or "pytest " in requirement:
+                    requires = requirement
+                    break
         yield {
             "name": f'`{info["name"]} <{info["project_url"]}>`_',
             "summary": info["summary"],
             "pyversions": f'.. image:: https://img.shields.io/pypi/pyversions/{info["name"]}',
             "status": status,
+            "requires": requires,
         }
 
 
