@@ -30,6 +30,7 @@ def iter_plugins():
         yield {
             "name": f'`{info["name"]} <{info["project_url"]}>`_',
             "summary": info["summary"],
+            "pyversions": f'.. image:: https://img.shields.io/pypi/pyversions/{info["name"]}',
         }
 
 
