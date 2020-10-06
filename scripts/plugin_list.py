@@ -12,6 +12,15 @@ Only PyPI projects that match "pytest-\*" are considered plugins.
 Packages classified as inactive are also excluded.
 
 """
+DEVELOPMENT_STATUS_CLASSIFIERS = (
+    "Development Status :: 1 - Planning",
+    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 6 - Mature",
+    "Development Status :: 7 - Inactive",
+)
 
 
 def iter_plugins():
@@ -27,10 +36,17 @@ def iter_plugins():
         info = response.json()["info"]
         if "Development Status :: 7 - Inactive" in info["classifiers"]:
             continue
+        for classifier in DEVELOPMENT_STATUS_CLASSIFIERS:
+            if classifier in info["classifiers"]:
+                status = classifier[22:]
+                break
+        else:
+            status = "NA"
         yield {
             "name": f'`{info["name"]} <{info["project_url"]}>`_',
             "summary": info["summary"],
             "pyversions": f'.. image:: https://img.shields.io/pypi/pyversions/{info["name"]}',
+            "status": status,
         }
 
 
