@@ -1,6 +1,8 @@
+import datetime
 import pathlib
 import re
 
+import packaging.version
 import requests
 import tabulate
 
@@ -48,13 +50,25 @@ def iter_plugins():
                 if requirement == "pytest" or "pytest " in requirement:
                     requires = requirement
                     break
+        releases = response.json()["releases"]
+        for release in sorted(
+            releases,
+            key=packaging.version.parse,
+            reverse=True,
+        ):
+            if releases[release]:
+                release_date = datetime.date.fromisoformat([
+                    upload["upload_time_iso_8601"] for upload in releases[release]
+                ][-1].split("T")[0])
+                last_release = release_date.strftime("%b %d, %Y")
         yield {
-            "name": f'`{info["name"]} <{info["project_url"]}>`_',
-            "summary": info["summary"],
-            "pyversions": f'.. image:: https://img.shields.io/pypi/pyversions/{info["name"]}',
-            "status": status,
-            "requires": requires,
-        }
+                "name": f'`{info["name"]} <{info["project_url"]}>`_',
+                "summary": info["summary"],
+                "pyversions": f'.. image:: https://img.shields.io/pypi/pyversions/{info["name"]}',
+                "last release": last_release,
+                "status": status,
+                "requires": requires,
+            }
 
 
 def main():
