@@ -57,9 +57,9 @@ def iter_plugins():
             reverse=True,
         ):
             if releases[release]:
-                release_date = datetime.date.fromisoformat([
-                    upload["upload_time_iso_8601"] for upload in releases[release]
-                ][-1].split("T")[0])
+                release_date = datetime.date.fromisoformat(
+                    releases[release][-1]["upload_time_iso_8601"].split("T")[0]
+                )
                 last_release = release_date.strftime("%b %d, %Y")
         yield {
                 "name": f'`{info["name"]} <{info["project_url"]}>`_',
