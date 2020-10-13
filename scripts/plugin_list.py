@@ -6,13 +6,18 @@ import packaging.version
 import requests
 import tabulate
 
-FILE_HEAD = R"""Plugins List
+FILE_HEAD_RST = R"""Plugins List
 ============
 
 The plugins are listed automatically from PyPI.
 Only PyPI projects that match "pytest-\*" are considered plugins.
 Packages classified as inactive are also excluded.
 
+"""
+FILE_HEAD_HTML = R"""<h1>Plugins List</h1>
+<p>The plugins are listed automatically from PyPI.
+Only PyPI projects that match "pytest-\*" are considered plugins.
+Packages classified as inactive are also excluded.</p>
 """
 DEVELOPMENT_STATUS_CLASSIFIERS = (
     "Development Status :: 1 - Planning",
@@ -25,7 +30,7 @@ DEVELOPMENT_STATUS_CLASSIFIERS = (
 )
 
 
-def iter_plugins():
+def iter_plugins(tablefmt="rst"):
     regex = r">([\d\w-]*)</a>"
     response = requests.get("https://pypi.org/simple")
     for match in re.finditer(regex, response.text):
@@ -61,8 +66,16 @@ def iter_plugins():
                     releases[release][-1]["upload_time_iso_8601"].split("T")[0]
                 )
                 last_release = release_date.strftime("%b %d, %Y")
-        name = f'`{info["name"]} <{info["project_url"]}>`_'
-        pyversions = f'.. image:: https://img.shields.io/pypi/pyversions/{info["name"]}'
+        if tablefmt == "rst":
+            name = f'`{info["name"]} <{info["project_url"]}>`_'
+            pyversions = (
+                f'.. image:: https://img.shields.io/pypi/pyversions/{info["name"]}'
+            )
+        elif tablefmt == "html":
+            name = f'<a href="{info["project_url"]}">{info["name"]}</a>'
+            pyversions = (
+                f'<img src="https://img.shields.io/pypi/pyversions/{info["name"]}">'
+            )
         summary = info["summary"].replace("\n", "")
         yield {
             "name": name,
@@ -74,15 +87,34 @@ def iter_plugins():
         }
 
 
-def main():
-    plugin_table = tabulate.tabulate(iter_plugins(), headers="keys", tablefmt="rst")
-    plugin_list = pathlib.Path("doc", "en", "plugin_list.rst")
+def main(tablefmt="rst"):
+    plugin_table = tabulate.tabulate(
+        list(iter_plugins(tablefmt=tablefmt)), headers="keys", tablefmt=tablefmt
+    )
+    if tablefmt == "rst":
+        plugin_list = pathlib.Path("doc", "en", "plugin_list.rst")
+        content = FILE_HEAD_RST + plugin_table + "\n"
+    elif tablefmt == "html":
+        for pattern in (
+            ("&lt;a", "<a"),
+            ("&lt;/a&gt;", "</a>"),
+            ("&lt;img", "<img"),
+            ("&quot;&gt;", '">'),
+            ("&quot;", '"'),
+        ):
+            plugin_table = plugin_table.replace(*pattern)
+        plugin_list = pathlib.Path("index.html")
+        from bs4 import BeautifulSoup
+
+        content = BeautifulSoup(FILE_HEAD_HTML + plugin_table, "html.parser").prettify()
+
     plugin_list.parent.mkdir(parents=True, exist_ok=True)
     with plugin_list.open("w") as f:
-        f.write(FILE_HEAD)
-        f.write(plugin_table)
-        f.write("\n")
+        f.write(content)
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+
+    tablefmt = sys.argv[1] if len(sys.argv) > 1 else "rst"
+    main(tablefmt=tablefmt)
