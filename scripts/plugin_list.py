@@ -61,14 +61,16 @@ def iter_plugins():
                     releases[release][-1]["upload_time_iso_8601"].split("T")[0]
                 )
                 last_release = release_date.strftime("%b %d, %Y")
+        name = f'`{info["name"]} <{info["project_url"]}>`_'
+        pyversions = f'.. image:: https://img.shields.io/pypi/pyversions/{info["name"]}'
         yield {
-                "name": f'`{info["name"]} <{info["project_url"]}>`_',
-                "summary": info["summary"],
-                "pyversions": f'.. image:: https://img.shields.io/pypi/pyversions/{info["name"]}',
-                "last release": last_release,
-                "status": status,
-                "requires": requires,
-            }
+            "name": name,
+            "summary": info["summary"],
+            "pyversions": pyversions,
+            "last release": last_release,
+            "status": status,
+            "requires": requires,
+        }
 
 
 def main():
