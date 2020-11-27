@@ -21,15 +21,12 @@ jobs:
           pip install packaging requests tabulate[widechars]
       - name: Update Plugin List
         run: python scripts/plugin_list.py
-      - name: GitHub Script
-        uses: actions/github-script@v3.0.0
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3
         with:
-          script: |
-            github.pulls.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: '[automated] Update plugin list',
-              body: '[automated] Update plugin list',
-              head: 'update-plugin-list',
-              base: 'master',
-            });
+          commit-message: '[automated] Update plugin list'
+          branch: update-plugin-list/patch
+          delete-branch: true
+          branch-suffix: short-commit-hash
+          title: '[automated] Update plugin list'
+          body: '[automated] Update plugin list'
